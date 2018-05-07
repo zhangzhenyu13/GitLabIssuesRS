@@ -15,6 +15,7 @@ def getComments(projectID):
     givenComments=comments.find({"project_id":str(projectID)})
     return givenComments
 
+
 if __name__ == '__main__':
     db=getHanle()
     projects=db["project"]

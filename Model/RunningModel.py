@@ -1,11 +1,12 @@
 from Model.GitLabDataSet import *
 from Model.CBC import EnsembleClassifier
-import threading,socket
+import socket,json
 
-class RunningModel(threading.Thread):
+class RunningModel:
+    port=8010
+    hostIP='192.168.3.125'
 
     def __init__(self,projectID):
-        threading.Thread.__init__(self)
 
         self.running=True
 
@@ -28,15 +29,18 @@ class RunningModel(threading.Thread):
             self.UserIndex[index]=k
 
         self.topK=5
-        print(self.UserIndex)
-        print(self.filters)
-        print("init recommender for top%d with %d users"%(self.topK,len(self.UserIndex)))
+        self.issueInvoker=IssueData(projectID,trainMode=False)
 
-    def recommendAssignees(self,X):
+        #print(self.UserIndex)
+        #print(self.filters)
+        print("init recommender for top%d with %d users\n"%(self.topK,len(self.UserIndex)))
+
+    def recommendAssignees(self,X,issueID=None):
+        print("recommend users for",issueID)
         knos=self.cluster.predict(X)
         Y=[]
         YN=[]
-        print(knos)
+        #print(knos)
         for i in range(len(X)):
             kno=knos[i]
 
@@ -57,41 +61,69 @@ class RunningModel(threading.Thread):
 
         return Y,YN
 
-    def run(self):
-        self.socket.bind(('localhost', 8001))
+    def StartService(self):
+        self.socket.bind((RunningModel.hostIP, RunningModel.port))
         self.socket.listen(5)
         while self.running:
             connection, address=self.socket.accept()
+            print("connect request from",address)
             try:
                 connection.settimeout(5)
-                buf = connection.recv(1024)
-                if buf == '1':
-                    connection.send('welcome to server!')
+
+                dataSize = connection.recv(8)
+                print("received for size", dataSize)
+
+                dataSize = int(dataSize.decode())
+                print("request data size=", dataSize)
+
+                if dataSize > 0:
+                    connection.send('OK'.encode())
                 else:
-                    connection.send('please go out!')
-            except :
-                print('time out or other error occured')
+                    connection.send('Illegal Data size!'.encode())
+                    continue
+
+                #print("show data")
+
+                request = connection.recv(dataSize)
+                request=json.loads(request.decode())
+
+                #print(request)
+
+                self.issueInvoker.fetchData(request)
+
+                _,recusers=self.recommendAssignees(self.issueInvoker.Xdata,request["data"])
+
+
+                result={
+                    "status":"OK",
+                    "users":recusers[0].tolist()
+                }
+
+                #print(result)
+
+                result=json.dumps(result)
+                connection.send(result.encode())
+
+            except Exception  as e:
+                print('time out or other error occured',e.args)
+
             connection.close()
 
 if __name__ == '__main__':
-    db = getHanle()
-    projects = db["project"].find()
-    pool_models={}
-    for project in projects:
-        projectID = project["pid"]
+    projectID = 14155
 
-        data = DataModel(projectID)
-        if len(data.data.userIndex)<2:
-            print("no models built")
-            continue
+    data = DataModel(projectID)
 
-        model=RunningModel(projectID)
-        pool_models[projectID]=model
 
-        Y,YN=model.recommendAssignees(data.testX)
-        print(Y)
-        print()
-        print(YN)
+    model=RunningModel(projectID)
 
-        print("\n model-%d predict finished\n"%projectID)
+    Y,YN=model.recommendAssignees(data.testX,data.testID)
+    #print(Y)
+    #print()
+    for i in range(len(data.testID)):
+        print(data.testID[i],YN[i])
+
+    print("\n model-%d predict finished\n"%projectID)
+
+    model.StartService()
 

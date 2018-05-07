@@ -6,6 +6,7 @@ class DataSet:
     def __init__(self):
         self.Xdata=[]
         self.Ydata=[]
+        self.issueID=[]
         self.clusterID=-1
     def genFilters(self,n_label):
         self.filterUsers=[]
@@ -36,6 +37,9 @@ class DataSet:
         self.testY = self.Ydata[train + validate:]
         #print("#%d"%self.clusterID,splitRatio,n)
 
+        self.trainID=self.issueID[:train]
+        self.validateID=self.issueID[train:train+validate]
+        self.testID=self.issueID[train+validate:]
 class DataModel:
 
     def predictCluster(self,Xdata):
@@ -66,6 +70,7 @@ class DataModel:
             kno=knos[i]
             self.dataSet[kno].Xdata.append(self.data.Xdata[i])
             self.dataSet[kno].Ydata.append(self.data.Ydata[i])
+            #self.dataSet[kno].issueID.append(self.data.issuesID[i])
 
         filters={}
 
@@ -81,6 +86,8 @@ class DataModel:
         train,validate,test=splitRatio
         self.Xdata=self.data.Xdata
         self.Ydata=self.data.Ydata
+        self.issueID=self.data.issuesID
+
         train = int(n * train)
         validate = int(n * validate)
         test = int(n * test)
@@ -91,7 +98,11 @@ class DataModel:
         self.trainY = self.Ydata[:train]
         self.validateY = self.Ydata[train:train + validate]
         self.testY = self.Ydata[train + validate:]
-        print("total", splitRatio, n)
+        #print("total", splitRatio, n)
+
+        self.trainID=self.issueID[:train]
+        self.validateID=self.issueID[train:train+validate]
+        self.testID=self.issueID[train+validate:]
 
 if __name__ == '__main__':
     db=getHanle()
