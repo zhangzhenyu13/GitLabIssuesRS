@@ -1,17 +1,22 @@
 import socket,sys,json
 from QueryMongoDB.IssueData import IssueData
+from QueryMongoDB.ConnectDB import getHanle
 
 if __name__ == '__main__':
+    db=getHanle()
     projectID=14155
+    issues=db["issue"].find({"project_id":projectID})
+
     issuedata=IssueData(projectID,trainMode=False)
     issueTrain=IssueData(projectID)
     print("==============================>\n")
     host = '192.168.3.125'
     port = 8010
 
-    testNum=3
+    testNum=10000
     count=0
-    for issueid in issueTrain.issuesID:
+
+    for issue in issues:
         if count>testNum:
             break
         else:
@@ -20,9 +25,20 @@ if __name__ == '__main__':
         sock=socket.socket()
         sock.connect((host, port))
 
+        data={
+            "created_at":issue["created_at"],
+            "closed_at":issue["closed_at"],
+            "description":issue["description"],
+            "labels":issue["labels"],
+            "title":issue["title"],
+            "downvotes":issue["downvotes"],
+            "upvotes":issue["upvotes"],
+            "notes_count":issue["notes_count"],
+        }
+
         request = {
-            "mode": "ID",
-            "data": issueid
+            "mode": "issue",
+            "data": data
         }
         request=json.dumps(request)
 
