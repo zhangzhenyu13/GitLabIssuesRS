@@ -1,6 +1,7 @@
 from Model.GitLabDataSet import *
 from Model.CBC import EnsembleClassifier
 import socket,json
+from argparse import ArgumentParser
 
 class RunningModel:
     port=8010
@@ -35,8 +36,8 @@ class RunningModel:
         #print(self.filters)
         print("init recommender for top%d with %d users\n"%(self.topK,len(self.UserIndex)))
 
-    def recommendAssignees(self,X,issueID=None):
-        print("recommend users for",issueID)
+    def recommendAssignees(self,X):
+        #print("recommend users")
         knos=self.cluster.predict(X)
         Y=[]
         YN=[]
@@ -71,10 +72,10 @@ class RunningModel:
                 connection.settimeout(5)
 
                 dataSize = connection.recv(8)
-                print("received for size", dataSize)
+                #print("received for size", dataSize)
 
                 dataSize = int(dataSize.decode())
-                print("request data size=", dataSize)
+                #print("request data size=", dataSize)
 
                 if dataSize > 0:
                     connection.send('OK'.encode())
@@ -91,7 +92,7 @@ class RunningModel:
 
                 self.issueInvoker.fetchData(request)
 
-                _,recusers=self.recommendAssignees(self.issueInvoker.Xdata,request["data"])
+                _,recusers=self.recommendAssignees(self.issueInvoker.Xdata)
 
 
                 result={
@@ -108,8 +109,14 @@ class RunningModel:
                 print('time out or other error occured',e.args)
 
             connection.close()
-
+            print()
 if __name__ == '__main__':
+    parse0=ArgumentParser(description="recommender service program",usage="program_file.py projectID")
+    parse0.add_argument("-p", "--projectID", help="optional argument", dest="projectID", default="14155")
+    args=parse0.parse_args()
+    if args.projectID is not None and args.projectID!='' and int(args.projectID)>0:
+        projectID=args.projectID
+
     projectID = 14155
 
     data = DataModel(projectID)
@@ -117,7 +124,7 @@ if __name__ == '__main__':
 
     model=RunningModel(projectID)
 
-    Y,YN=model.recommendAssignees(data.testX,data.testID)
+    Y,YN=model.recommendAssignees(data.testX)
     #print(Y)
     #print()
     for i in range(len(data.testID)):

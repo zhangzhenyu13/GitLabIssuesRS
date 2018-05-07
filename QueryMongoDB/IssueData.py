@@ -120,6 +120,9 @@ class IssueData:
     def fetchData(self,data):
         #data=json.loads(request)
 
+        self.docs=[]
+        self.issues=[]
+
         if data["mode"]=='ID':
             issueID=int(data["data"])
             issues = self.db["issue"].find({"issue_id": issueID})
@@ -127,13 +130,10 @@ class IssueData:
         else:
             issues=[data["data"]]
 
+        #print("issues count before",len(issues))
         for issue in issues:
             beginT = issue["created_at"]
             endT = issue["closed_at"]
-            # beginT=beginT[:beginT.find("T")]
-            # endT=endT[:endT.find("T")]
-            # print("begin:"+beginT,"end:"+endT)
-
             beginT = parser.parse(beginT)
             if endT == "":
                 duration = (datetime.datetime.now().date() - beginT.date()).days
@@ -156,10 +156,12 @@ class IssueData:
             self.docs.append(doc)
             self.issues.append([beginT, duration, downvotes, upvotes, notes_count])
 
+        #print("issues count after",len(issues))
 
         self.vectorize()
 
-        print("fetched",len(self.Xdata))
+        print("fetched",len(self.Xdata),self.Xdata.shape)
+
     def __init__(self,projectID=None,trainMode=True):
         self.projectID=projectID
         self.Xdata=None
@@ -192,6 +194,7 @@ class IssueData:
         #lsa.n_features=100
         self.docX=self.getDocX()
 
+        #print(self.docX.shape,len(self.issues))
         self.Xdata=np.concatenate((self.docX,self.issues),axis=1)
 
         if self.trainMode==False:

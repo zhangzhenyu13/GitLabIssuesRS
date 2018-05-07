@@ -13,7 +13,7 @@ if __name__ == '__main__':
     host = '192.168.3.125'
     port = 8010
 
-    testNum=10000
+    testNum=10
     count=0
 
     for issue in issues:
