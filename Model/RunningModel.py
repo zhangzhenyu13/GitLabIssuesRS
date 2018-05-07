@@ -121,12 +121,14 @@ class RunningModel:
             print()
 if __name__ == '__main__':
     parse0=ArgumentParser(description="recommender service program",usage="program_file.py projectID")
-    parse0.add_argument("-p", "--projectID", help="optional argument", dest="projectID", default="14155")
+    parse0.add_argument("-i", "--projectID", help="optional argument", dest="projectID", default="14155")
+    parse0.add_argument("-p", "--port", help="optional argument", dest="port", default="8020")
+    parse0.add_argument("-H", "--host", help="optional argument", dest="host", default="localhost")
     args=parse0.parse_args()
-    if args.projectID is not None and args.projectID!='' and int(args.projectID)>0:
-        projectID=args.projectID
 
-    projectID = 14155
+    projectID=int(args.projectID)
+    RunningModel.hostIP=args.host
+    RunningModel.port=int(args.port)
 
     data = DataModel(projectID)
 
