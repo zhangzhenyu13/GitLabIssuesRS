@@ -1,10 +1,10 @@
 from Model.GitLabDataSet import *
 from Model.CBC import EnsembleClassifier
-import socket,json
+import socket,json,sys
 from argparse import ArgumentParser
 
 class RunningModel:
-    port=8010
+    port=8012
     hostIP='192.168.3.125'
 
     def __init__(self,projectID):
@@ -75,7 +75,7 @@ class RunningModel:
                 #print("received for size", dataSize)
 
                 dataSize = int(dataSize.decode())
-                #print("request data size=", dataSize)
+                print("request data size=", dataSize)
 
                 if dataSize > 0:
                     connection.send('OK'.encode())
@@ -85,7 +85,16 @@ class RunningModel:
 
                 #print("show data")
 
-                request = connection.recv(dataSize)
+
+                request = bytes()
+                block_no=1
+                while sys.getsizeof(request)<dataSize:
+                    print("recv block#",block_no,"recv data size",sys.getsizeof(request))
+                    recv=connection.recv(1024)
+                    print("received",recv)
+                    request=request+recv
+                    block_no+=1
+
                 request=json.loads(request.decode())
 
                 #print(request)

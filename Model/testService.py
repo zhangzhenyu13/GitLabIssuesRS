@@ -11,9 +11,9 @@ if __name__ == '__main__':
     issueTrain=IssueData(projectID)
     print("==============================>\n")
     host = '192.168.3.125'
-    port = 8010
+    port = 8012
 
-    testNum=10
+    testNum=10000
     count=0
 
     for issue in issues:
@@ -40,16 +40,18 @@ if __name__ == '__main__':
             "mode": "issue",
             "data": data
         }
-        request=json.dumps(request)
+        request=json.dumps(request).encode()
 
         objsize=int(sys.getsizeof(request))
         print("size=",objsize)
-        objsize = str(objsize).encode()
-        sock.send(objsize)
+        objsize_send = str(objsize).encode()
+        sock.send(objsize_send)
 
         reponse=sock.recv(1024)
         if reponse.decode()=='OK':
-            sock.send(request.encode())
+
+            sock.send(request)
+
             users=sock.recv(1024)
 
             users=json.loads(users.decode())
