@@ -125,6 +125,7 @@ class EnsembleClassifier:
             self.model=pickle.load(f)
 
 def runBuldAll():
+    print("build all models for all projects")
     db = getHanle()
     projects = db["project"].find()
     for project in projects:
@@ -141,7 +142,9 @@ def runBuldAll():
         print("\ntraining for projectID=", projectID, "finished\n")
 if __name__ == '__main__':
     parse0 = ArgumentParser(description="recommender service program", usage="program_file.py projectID")
-    parse0.add_argument("-i", "--projectID", help="optional argument", dest="projectID", default="14155")
+    parse0.add_argument("-i", "--projectID",
+                        help="optional argument for project ID, default is all; avaliable value is an integer",
+                        dest="projectID", default="all")
 
     args = parse0.parse_args()
 
