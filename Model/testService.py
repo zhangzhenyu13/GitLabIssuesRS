@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/media/bird/Data/IssueRS/')
+sys.path.append('../')
 #print(sys.path)
 
 import socket,sys,json
