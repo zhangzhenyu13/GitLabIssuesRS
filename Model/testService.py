@@ -1,3 +1,7 @@
+import sys
+sys.path.append('/media/bird/Data/IssueRS/')
+#print(sys.path)
+
 import socket,sys,json
 from QueryMongoDB.IssueData import IssueData
 from QueryMongoDB.ConnectDB import getHanle

@@ -1,3 +1,7 @@
+import sys
+sys.path.append('/media/bird/Data/IssueRS/')
+#print(sys.path)
+
 from Model.GitLabDataSet import *
 from Model.CBC import EnsembleClassifier
 import socket,json,sys
@@ -200,3 +204,5 @@ if __name__ == '__main__':
 
     #model.StartService()
     model.startHttpService()
+
+
