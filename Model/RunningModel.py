@@ -36,6 +36,9 @@ class RunningModel:
 
         #print(self.UserIndex)
         #print(self.filters)
+        db=getHanle()
+        self.users=db["user"]
+
         print("init recommender for top%d with %d users\n"%(self.topK,len(self.UserIndex)))
 
     def recommendAssignees(self,X):
@@ -127,7 +130,7 @@ class RunningModel:
         #extract method
         issueInvoker=self.issueInvoker
         recommendAssignees=self.recommendAssignees
-
+        users=self.users
         #define data handler
         class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
@@ -149,9 +152,15 @@ class RunningModel:
 
                 _, recusers = recommendAssignees(issueInvoker.Xdata)
 
+                userIDs=recusers[0].tolist()
+                usersnames=[]
+                for i in range(len(userIDs)):
+                    uid=userIDs[i]
+                    usersnames.append(users.find({"uid":uid})[0]["username"])
+
                 result = {
                     "status": "OK",
-                    "users": recusers[0].tolist()
+                    "users": usersnames
                 }
 
                 # print(result)
