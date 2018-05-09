@@ -1,3 +1,8 @@
+import sys
+sys.path.append('../')
+#print(sys.path)
+
+from argparse import ArgumentParser
 import numpy as np
 from sklearn import ensemble
 from sklearn import metrics
@@ -119,18 +124,39 @@ class EnsembleClassifier:
         with open("../data/saved_ML_models/predictorModels/"+self.name+"extrees.pkl","rb") as f:
             self.model=pickle.load(f)
 
-if __name__ == '__main__':
+def runBuldAll():
     db = getHanle()
     projects = db["project"].find()
     for project in projects:
         projectID = project["pid"]
-        data=DataModel(projectID)
-        if len(data.data.userIndex)<2:
+        data = DataModel(projectID)
+        if len(data.data.userIndex) < 2:
             print("need not train model")
             continue
-        model=EnsembleClassifier()
-        model.name=str(projectID)
+        model = EnsembleClassifier()
+        model.name = str(projectID)
         model.trainModel(data)
         model.saveModel()
 
-        print("\ntraining for projectID=",projectID,"finished\n")
+        print("\ntraining for projectID=", projectID, "finished\n")
+if __name__ == '__main__':
+    parse0 = ArgumentParser(description="recommender service program", usage="program_file.py projectID")
+    parse0.add_argument("-i", "--projectID", help="optional argument", dest="projectID", default="14155")
+
+    args = parse0.parse_args()
+
+    if args.projectID.lower()=='all':
+        runBuldAll()
+        exit(0)
+
+    projectID = int(args.projectID)
+
+    data=DataModel(projectID)
+    if len(data.data.userIndex)<2:
+        print("need not train model")
+    model=EnsembleClassifier()
+    model.name=str(projectID)
+    model.trainModel(data)
+    model.saveModel()
+
+    print("\ntraining for projectID=",projectID,"finished\n")
