@@ -2,10 +2,12 @@ from Model.GitLabDataSet import *
 from Model.CBC import EnsembleClassifier
 import socket,json,sys
 from argparse import ArgumentParser
+from http.server import BaseHTTPRequestHandler,HTTPServer
+from io import BytesIO
 
 class RunningModel:
-    port=8012
-    hostIP='192.168.3.125'
+    port=12345
+    hostIP=socket.gethostname()
 
     def __init__(self,projectID):
 
@@ -62,9 +64,10 @@ class RunningModel:
 
         return Y,YN
 
-    def StartService(self):
+    def startTcpService(self):
         self.socket.bind((RunningModel.hostIP, RunningModel.port))
         self.socket.listen(5)
+        print("service listen:",RunningModel.hostIP,RunningModel.port)
         while self.running:
             connection, address=self.socket.accept()
             print("connect request from",address)
@@ -119,11 +122,54 @@ class RunningModel:
 
             connection.close()
             print()
+
+    def startHttpService(self):
+        #extract method
+        issueInvoker=self.issueInvoker
+        recommendAssignees=self.recommendAssignees
+
+        #define data handler
+        class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
+
+            def do_GET(self):
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write("OK".encode())
+
+            def do_POST(self):
+                content_length = int(self.headers['Content-Length'])
+                body = self.rfile.read(content_length)
+                self.send_response(200)
+                self.end_headers()
+                response = BytesIO()
+
+                request = json.loads(body.decode())
+
+                issueInvoker.fetchData(request)
+
+                _, recusers = recommendAssignees(issueInvoker.Xdata)
+
+                result = {
+                    "status": "OK",
+                    "users": recusers[0].tolist()
+                }
+
+                # print(result)
+
+                result = json.dumps(result).encode()
+                response.write(result)
+                self.wfile.write(response.getvalue())
+
+        #run http service
+        httpd = HTTPServer((RunningModel.hostIP, RunningModel.port), SimpleHTTPRequestHandler)
+        print("http server start:",httpd.server_address)
+        httpd.serve_forever()
+
 if __name__ == '__main__':
     parse0=ArgumentParser(description="recommender service program",usage="program_file.py projectID")
     parse0.add_argument("-i", "--projectID", help="optional argument", dest="projectID", default="14155")
     parse0.add_argument("-p", "--port", help="optional argument", dest="port", default="8020")
-    parse0.add_argument("-H", "--host", help="optional argument", dest="host", default="localhost")
+    parse0.add_argument("-H", "--host", help="optional argument", dest="host", default="0.0.0.0")
     args=parse0.parse_args()
 
     projectID=int(args.projectID)
@@ -143,5 +189,5 @@ if __name__ == '__main__':
 
     print("\n model-%d predict finished\n"%projectID)
 
-    model.StartService()
-
+    #model.StartService()
+    model.startHttpService()

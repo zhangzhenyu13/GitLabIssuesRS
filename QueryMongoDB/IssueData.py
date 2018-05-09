@@ -160,7 +160,7 @@ class IssueData:
 
         self.vectorize()
 
-        print("fetched",len(self.Xdata),self.Xdata.shape)
+        #print("fetched",len(self.Xdata),self.Xdata.shape)
 
     def __init__(self,projectID=None,trainMode=True):
         self.projectID=projectID
