@@ -6,7 +6,7 @@ from Model.GitLabDataSet import *
 from Model.CBC import EnsembleClassifier
 import socket,json,sys
 from argparse import ArgumentParser
-from http.server import BaseHTTPRequestHandler,HTTPServer
+from http.server import BaseHTTPRequestHandler,HTTPServer,SimpleHTTPRequestHandler
 from io import BytesIO
 
 class RunningModel:
@@ -136,7 +136,10 @@ class RunningModel:
         recommendAssignees=self.recommendAssignees
         users=self.users
         #define data handler
-        class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
+        class MySimpleHTTPRequestHandler(SimpleHTTPRequestHandler):
+            def end_headers(self):
+                self.send_header('Access-Control-Allow-Origin', '*')
+                SimpleHTTPRequestHandler.end_headers(self)
 
             def do_GET(self):
                 self.send_response(200)
@@ -144,14 +147,19 @@ class RunningModel:
                 self.wfile.write("OK".encode())
 
             def do_POST(self):
+                self.do_OPTIONS()
+            def do_OPTIONS(self):
+
+                #print("==========>headers\n",self.headers,"\n")
                 content_length = int(self.headers['Content-Length'])
+                #print("rfile",self.rfile)
                 body = self.rfile.read(content_length)
                 self.send_response(200)
                 self.end_headers()
                 response = BytesIO()
-
+                #print("===========>body\n",body,"\n")
                 request = json.loads(body.decode())
-
+                #print("===========>request data\n",request,"\n")
                 issueInvoker.fetchData(request)
 
                 _, recusers = recommendAssignees(issueInvoker.Xdata)
@@ -170,11 +178,14 @@ class RunningModel:
                 # print(result)
 
                 result = json.dumps(result).encode()
+                #print("================>send result\n",result)
                 response.write(result)
+
                 self.wfile.write(response.getvalue())
+                print("finished one recommendation({})\n"%userIDs)
 
         #run http service
-        httpd = HTTPServer((RunningModel.hostIP, RunningModel.port), SimpleHTTPRequestHandler)
+        httpd = HTTPServer((RunningModel.hostIP, RunningModel.port), MySimpleHTTPRequestHandler)
         print("http server start:",httpd.server_address)
         httpd.serve_forever()
 
@@ -194,13 +205,13 @@ if __name__ == '__main__':
 
     model=RunningModel(projectID)
 
-    Y,YN=model.recommendAssignees(data.testX)
+    #Y,YN=model.recommendAssignees(data.testX)
     #print(Y)
     #print()
-    for i in range(len(data.testID)):
-        print(data.testID[i],YN[i])
+    #for i in range(len(data.testID)):
+    #    print(data.testID[i],YN[i])
 
-    print("\n model-%d predict finished\n"%projectID)
+    #print("\n model-%d predict finished\n"%projectID)
 
     #model.StartService()
     model.startHttpService()
