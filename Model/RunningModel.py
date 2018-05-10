@@ -172,7 +172,8 @@ class RunningModel:
 
                 result = {
                     "status": "OK",
-                    "users": usersnames
+                    "users": usersnames,
+                    "userIDs":userIDs
                 }
 
                 # print(result)
@@ -182,7 +183,7 @@ class RunningModel:
                 response.write(result)
 
                 self.wfile.write(response.getvalue())
-                print("finished one recommendation({})\n"%userIDs)
+                print("finished one recommendation=>",userIDs,"\n")
 
         #run http service
         httpd = HTTPServer((RunningModel.hostIP, RunningModel.port), MySimpleHTTPRequestHandler)
