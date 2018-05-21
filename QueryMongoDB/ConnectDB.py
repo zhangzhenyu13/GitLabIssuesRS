@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import json
 
 def getHanle():
     client=MongoClient("192.168.7.125",27017)
@@ -15,6 +16,10 @@ def getComments(projectID):
     givenComments=comments.find({"project_id":str(projectID)})
     return givenComments
 
+def loadConfig():
+    with open("../data/config.json","r") as f:
+        config=json.load(f)
+    return config
 
 if __name__ == '__main__':
     db=getHanle()

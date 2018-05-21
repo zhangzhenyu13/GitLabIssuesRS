@@ -140,11 +140,12 @@ def runBuldAll():
         model.saveModel()
 
         print("\ntraining for projectID=", projectID, "finished\n")
+
 if __name__ == '__main__':
-    parse0 = ArgumentParser(description="recommender service program", usage="program_file.py projectID")
-    parse0.add_argument("-i", "--projectID",
-                        help="optional argument for project ID, default is all; avaliable value is an integer",
-                        dest="projectID", default="all")
+    parse0 = ArgumentParser(description="recommender service program", usage="program_file.py projectName")
+    parse0.add_argument("-n", "--projectName",
+                        help="optional argument for project name",
+                        dest="projectName", default="all")
 
     args = parse0.parse_args()
 
@@ -152,7 +153,10 @@ if __name__ == '__main__':
         runBuldAll()
         exit(0)
 
-    projectID = int(args.projectID)
+    db = getHanle()
+    projects = db["project"].find({"name":args.projectName})
+    
+    projectID = int(projects[0]["pid"])
 
     data=DataModel(projectID)
     if len(data.data.userIndex)<2:

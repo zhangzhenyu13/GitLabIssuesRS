@@ -9,41 +9,45 @@ from argparse import ArgumentParser
 from http.server import BaseHTTPRequestHandler,HTTPServer,SimpleHTTPRequestHandler
 from io import BytesIO
 
-class RunningModel:
-    port=12345
-    hostIP=socket.gethostname()
+class ModelLoader:
 
-    def __init__(self,projectID):
+    def loadModel(self,projectName):
+        projects=self.db["project"].find({"name":projectName})
+        projectID=projects[0]["pid"]
 
-        self.running=True
-
-        self.socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.predictor=EnsembleClassifier()
-
-        self.predictor.name=str(projectID)
+        self.predictor.name = str(projectID)
         self.predictor.loadModel()
 
-        with open("../data/saved_ML_models/clusterModels/"+str(projectID)+".pkl","rb") as f:
-            self.cluster=pickle.load(f)
-        with open("../data/filteredUsers/"+str(projectID)+".pkl","rb") as f:
-            self.filters=pickle.load(f)
-        with open("../data/UserIndex/"+str(projectID)+".pkl","rb") as f:
-            userIndex=pickle.load(f)
+        with open("../data/saved_ML_models/clusterModels/" + str(projectID) + ".pkl", "rb") as f:
+            self.cluster = pickle.load(f)
+        with open("../data/filteredUsers/" + str(projectID) + ".pkl", "rb") as f:
+            self.filters = pickle.load(f)
+        with open("../data/UserIndex/" + str(projectID) + ".pkl", "rb") as f:
+            userIndex = pickle.load(f)
 
-        self.UserIndex={}
+        self.UserIndex = {}
         for k in userIndex.keys():
-            index=userIndex[k]
-            self.UserIndex[index]=k
+            index = userIndex[k]
+            self.UserIndex[index] = k
 
-        self.topK=5
-        self.issueInvoker=IssueData(projectID,trainMode=False)
+        self.topK = self.conifg["topK"]
+        self.issueInvoker = IssueData(projectID, trainMode=False)
 
-        #print(self.UserIndex)
-        #print(self.filters)
-        db=getHanle()
-        self.users=db["user"]
+        # print(self.UserIndex)
+        # print(self.filters)
 
-        print("init recommender for top%d with %d users\n"%(self.topK,len(self.UserIndex)))
+
+        print("loaded recommender for top%d with %d users\n" % (self.topK, len(self.UserIndex)))
+
+
+    def __init__(self):
+
+        self.conifg=loadConfig()
+        self.db = getHanle()
+        self.users = self.db["user"]
+
+        self.predictor=EnsembleClassifier()
+
 
     def recommendAssignees(self,X):
         #print("recommend users")
@@ -71,10 +75,20 @@ class RunningModel:
 
         return Y,YN
 
+class RunningService:
+    port = 8020
+    hostIP = socket.gethostname()
+    def __init__(self):
+        self.config=loadConfig()
+        self.port=self.config["port"]
+        self.running=True
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.recommender=ModelLoader()
+
     def startTcpService(self):
-        self.socket.bind((RunningModel.hostIP, RunningModel.port))
+        self.socket.bind((RunningService.hostIP, RunningService.port))
         self.socket.listen(5)
-        print("service listen:",RunningModel.hostIP,RunningModel.port)
+        print("service listen:",RunningService.hostIP,RunningService.port)
         while self.running:
             connection, address=self.socket.accept()
             print("connect request from",address)
@@ -106,12 +120,14 @@ class RunningModel:
                     block_no+=1
 
                 request=json.loads(request.decode())
+                projectname=request["title"]
+                self.recommender.loadModel(projectname)
 
                 #print(request)
 
-                self.issueInvoker.fetchData(request)
+                self.recommender.issueInvoker.fetchData(request)
 
-                _,recusers=self.recommendAssignees(self.issueInvoker.Xdata)
+                _,recusers=self.recommender.recommendAssignees(self.recommender.issueInvoker.Xdata)
 
 
                 result={
@@ -132,9 +148,7 @@ class RunningModel:
 
     def startHttpService(self):
         #extract method
-        issueInvoker=self.issueInvoker
-        recommendAssignees=self.recommendAssignees
-        users=self.users
+        recommender=self.recommender
         #define data handler
         class MySimpleHTTPRequestHandler(SimpleHTTPRequestHandler):
             def end_headers(self):
@@ -159,16 +173,18 @@ class RunningModel:
                 response = BytesIO()
                 #print("===========>body\n",body,"\n")
                 request = json.loads(body.decode())
+                projectname=request["title"]
+                recommender.loadModel(projectname)
                 #print("===========>request data\n",request,"\n")
-                issueInvoker.fetchData(request)
+                recommender.issueInvoker.fetchData(request)
 
-                _, recusers = recommendAssignees(issueInvoker.Xdata)
+                _, recusers = recommender.recommendAssignees(recommender.issueInvoker.Xdata)
 
                 userIDs=recusers[0].tolist()
                 usersnames=[]
                 for i in range(len(userIDs)):
                     uid=userIDs[i]
-                    usersnames.append(users.find({"uid":uid})[0]["username"])
+                    usersnames.append(recommender.users.find({"uid":uid})[0]["username"])
 
                 result = {
                     "status": "OK",
@@ -186,33 +202,21 @@ class RunningModel:
                 print("finished one recommendation=>",userIDs,"\n")
 
         #run http service
-        httpd = HTTPServer((RunningModel.hostIP, RunningModel.port), MySimpleHTTPRequestHandler)
+        httpd = HTTPServer((RunningService.hostIP, RunningService.port), MySimpleHTTPRequestHandler)
         print("http server start:",httpd.server_address)
         httpd.serve_forever()
 
 if __name__ == '__main__':
     parse0=ArgumentParser(description="recommender service program",usage="program_file.py projectID")
-    parse0.add_argument("-i", "--projectID", help="optional argument", dest="projectID", default="14155")
     parse0.add_argument("-p", "--port", help="optional argument", dest="port", default="8020")
     parse0.add_argument("-H", "--host", help="optional argument", dest="host", default="0.0.0.0")
     args=parse0.parse_args()
 
-    projectID=int(args.projectID)
-    RunningModel.hostIP=args.host
-    RunningModel.port=int(args.port)
+    RunningService.hostIP=args.host
+    RunningService.port=int(args.port)
 
-    data = DataModel(projectID)
+    model=RunningService()
 
-
-    model=RunningModel(projectID)
-
-    #Y,YN=model.recommendAssignees(data.testX)
-    #print(Y)
-    #print()
-    #for i in range(len(data.testID)):
-    #    print(data.testID[i],YN[i])
-
-    #print("\n model-%d predict finished\n"%projectID)
 
     #model.StartService()
     model.startHttpService()
