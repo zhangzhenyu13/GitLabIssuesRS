@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python3 Model/CBC.py -n $1
+python3 CBC.py -n $1 $2

@@ -22,7 +22,7 @@ class LSAFlow:
         self.name=""
 
     def transformVec(self,docs):
-        print("transfering docs to LSA factors")
+        #print("transfering docs to LSA factors")
         X=self.idfmodel.transform(docs)
         X = self.lsa.transform(X)
         return X
@@ -56,13 +56,13 @@ class LSAFlow:
 
 
     def loadModel(self):
-        print("loading lsa model")
+        #print("loading lsa model")
         with open("../data/saved_ML_models/docModels/"+self.name+"-lsamodel.pkl","rb") as f:
             model=pickle.load(f)
             self.n_features=model["n_features"]
             self.lsa=model["lsa"]
             self.idfmodel=model["idfmodel"]
-        print("loaded %d feature model"%self.n_features)
+        #print("loaded %d feature model"%self.n_features)
         print()
 
 class IssueData:

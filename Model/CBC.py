@@ -146,23 +146,32 @@ if __name__ == '__main__':
     parse0.add_argument("-n", "--projectName",
                         help="optional argument for project name",
                         dest="projectName", default="all")
+    parse0.add_argument("-m", "--modelName",
+                        help="optional argument for model name",
+                        dest="modelName", default="all")
 
     args = parse0.parse_args()
 
-    if args.projectID.lower()=='all':
+    if args.projectName.lower()=='all':
         runBuldAll()
         exit(0)
 
     db = getHanle()
     projects = db["project"].find({"name":args.projectName})
-    
+
     projectID = int(projects[0]["pid"])
 
     data=DataModel(projectID)
     if len(data.data.userIndex)<2:
         print("need not train model")
+
     model=EnsembleClassifier()
-    model.name=str(projectID)
+
+    if args.modelName is not None or args.modelName!='':
+        model.name=args.modelName
+    else:
+        model.name=str(projectID)
+
     model.trainModel(data)
     model.saveModel()
 

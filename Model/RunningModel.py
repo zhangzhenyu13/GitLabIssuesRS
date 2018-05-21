@@ -13,6 +13,7 @@ class ModelLoader:
 
     def loadModel(self,projectName):
         projects=self.db["project"].find({"name":projectName})
+        #print(projectName,projects.count(),projects)
         projectID=projects[0]["pid"]
 
         self.predictor.name = str(projectID)
@@ -37,7 +38,7 @@ class ModelLoader:
         # print(self.filters)
 
 
-        print("loaded recommender for top%d with %d users\n" % (self.topK, len(self.UserIndex)))
+        #print("loaded recommender for top%d with %d users\n" % (self.topK, len(self.UserIndex)))
 
 
     def __init__(self):
@@ -120,7 +121,7 @@ class RunningService:
                     block_no+=1
 
                 request=json.loads(request.decode())
-                projectname=request["title"]
+                projectname=request["data"]["name"]
                 self.recommender.loadModel(projectname)
 
                 #print(request)
@@ -173,7 +174,7 @@ class RunningService:
                 response = BytesIO()
                 #print("===========>body\n",body,"\n")
                 request = json.loads(body.decode())
-                projectname=request["title"]
+                projectname=request["data"]["name"]
                 recommender.loadModel(projectname)
                 #print("===========>request data\n",request,"\n")
                 recommender.issueInvoker.fetchData(request)
@@ -199,7 +200,7 @@ class RunningService:
                 response.write(result)
 
                 self.wfile.write(response.getvalue())
-                print("finished one recommendation=>",userIDs,"\n")
+                print("finished one recommendation(%s)=>"%projectname,userIDs,"\n")
 
         #run http service
         httpd = HTTPServer((RunningService.hostIP, RunningService.port), MySimpleHTTPRequestHandler)

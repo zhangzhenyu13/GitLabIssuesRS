@@ -49,8 +49,8 @@ class DataModel:
     def __init__(self,projectID,splitRatio=(0.8,0.1,0.1)):
         self.data=IssueData(projectID)
         self.data.vectorize()
-
-        self.clusterNum=len(self.data.issuesID)//20
+        self.config=loadConfig()
+        self.clusterNum=len(self.data.issuesID)//self.config["cluster_users"]
 
         self.clustermodel=KMeans(n_clusters=self.clusterNum,verbose=False)
 

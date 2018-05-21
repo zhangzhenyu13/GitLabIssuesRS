@@ -74,7 +74,7 @@ def testHttpService():
     db = getHanle()
     projectID = 14155
     issues = db["issue"].find({"project_id": projectID})
-
+    name=db["project"].find({"pid":projectID})[0]["name"]
     print("==============================>\n")
     host = "192.168.3.125"
     port = 8020
@@ -102,6 +102,7 @@ def testHttpService():
             "downvotes": issue["downvotes"],
             "upvotes": issue["upvotes"],
             "notes_count": issue["notes_count"],
+            "name":name
         }
 
         request = {
