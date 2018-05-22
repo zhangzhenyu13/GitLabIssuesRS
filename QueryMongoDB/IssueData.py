@@ -82,6 +82,9 @@ class IssueData:
             pickle.dump(self.userIndex, f, True)
 
         for issue in issuedata:
+            if len(issue["assignees"])<1:
+                continue
+
             self.issuesID.append(issue["issue_id"])
             beginT = issue["created_at"]
             endT = issue["closed_at"]

@@ -77,19 +77,19 @@ class ModelLoader:
         return Y,YN
 
 class RunningService:
-    port = 8020
-    hostIP = socket.gethostname()
+
     def __init__(self):
         self.config=loadConfig()
         self.port=self.config["port"]
+        self.hostIP=self.config["listen-host"]
         self.running=True
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.recommender=ModelLoader()
 
     def startTcpService(self):
-        self.socket.bind((RunningService.hostIP, RunningService.port))
+        self.socket.bind((self.hostIP, self.port))
         self.socket.listen(5)
-        print("service listen:",RunningService.hostIP,RunningService.port)
+        print("service listen:",self.hostIP,self.port)
         while self.running:
             connection, address=self.socket.accept()
             print("connect request from",address)
@@ -203,18 +203,18 @@ class RunningService:
                 print("finished one recommendation(%s)=>"%projectname,userIDs,"\n")
 
         #run http service
-        httpd = HTTPServer((RunningService.hostIP, RunningService.port), MySimpleHTTPRequestHandler)
+        httpd = HTTPServer((self.hostIP, self.port), MySimpleHTTPRequestHandler)
         print("http server start:",httpd.server_address)
         httpd.serve_forever()
 
 if __name__ == '__main__':
-    parse0=ArgumentParser(description="recommender service program",usage="program_file.py projectID")
-    parse0.add_argument("-p", "--port", help="optional argument", dest="port", default="8020")
-    parse0.add_argument("-H", "--host", help="optional argument", dest="host", default="0.0.0.0")
-    args=parse0.parse_args()
+    #parse0=ArgumentParser(description="recommender service program",usage="program_file.py projectID")
+    #parse0.add_argument("-p", "--port", help="optional argument", dest="port", default="8020")
+    #parse0.add_argument("-H", "--host", help="optional argument", dest="host", default="0.0.0.0")
+    #args=parse0.parse_args()
 
-    RunningService.hostIP=args.host
-    RunningService.port=int(args.port)
+    #RunningService.hostIP=args.host
+    #RunningService.port=int(args.port)
 
     model=RunningService()
 

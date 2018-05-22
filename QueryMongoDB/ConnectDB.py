@@ -1,8 +1,13 @@
 from pymongo import MongoClient
 import json
+def loadConfig():
+    with open("../data/config.json","r") as f:
+        config=json.load(f)
+    return config
 
 def getHanle():
-    client=MongoClient("192.168.7.125",27017)
+    config=loadConfig()
+    client=MongoClient(config["dbIP"],config["dbport"])
     db=client.get_database("gitlab")
     return db
 
@@ -16,10 +21,7 @@ def getComments(projectID):
     givenComments=comments.find({"project_id":str(projectID)})
     return givenComments
 
-def loadConfig():
-    with open("../data/config.json","r") as f:
-        config=json.load(f)
-    return config
+
 
 if __name__ == '__main__':
     db=getHanle()

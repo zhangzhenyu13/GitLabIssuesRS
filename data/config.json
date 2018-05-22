@@ -1,6 +1,8 @@
 {
   "topK":5,
   "port":8020,
-  "cluster_users":20
-
+  "listen-host":"0.0.0.0",
+  "cluster_users":20,
+  "dbIP":"192.168.7.125",
+  "dbport":27017
 }
