@@ -175,24 +175,31 @@ class RunningService:
                 #print("===========>body\n",body,"\n")
                 request = json.loads(body.decode())
                 projectname=request["data"]["name"]
-                recommender.loadModel(projectname)
-                #print("===========>request data\n",request,"\n")
-                recommender.issueInvoker.fetchData(request)
+                
+                try:
+                    recommender.loadModel(projectname)
+                    #print("===========>request data\n",request,"\n")
+                    recommender.issueInvoker.fetchData(request)
 
-                _, recusers = recommender.recommendAssignees(recommender.issueInvoker.Xdata)
+                    _, recusers = recommender.recommendAssignees(recommender.issueInvoker.Xdata)
 
-                userIDs=recusers[0].tolist()
-                usersnames=[]
-                for i in range(len(userIDs)):
-                    uid=userIDs[i]
-                    usersnames.append(recommender.users.find({"uid":uid})[0]["username"])
+                    userIDs=recusers[0].tolist()
+                    usersnames=[]
+                    for i in range(len(userIDs)):
+                        uid=userIDs[i]
+                        usersnames.append(recommender.users.find({"uid":uid})[0]["username"])
 
-                result = {
-                    "status": "OK",
-                    "users": usersnames,
-                    "userIDs":userIDs
-                }
-
+                    result = {
+                        "status": "OK",
+                        "users": usersnames,
+                        "userIDs":userIDs
+                    }
+                except:
+                    result = {
+                        "status": "Inner Error",
+                        "users": ["not available"],
+                        "userIDs": ["not available"]
+                    }
                 # print(result)
 
                 result = json.dumps(result).encode()

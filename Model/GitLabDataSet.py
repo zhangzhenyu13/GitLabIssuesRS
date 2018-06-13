@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../')
+
 from QueryMongoDB.IssueData import *
 from sklearn.cluster import KMeans
 
@@ -46,8 +49,10 @@ class DataModel:
         knos=self.clustermodel.predict(Xdata)
         return knos
 
-    def __init__(self,projectID,splitRatio=(0.8,0.1,0.1)):
+    def __init__(self,projectID,splitRatio=(1.0,0.,0.)):
         self.data=IssueData(projectID)
+        if len(self.data.issues)<30 and self.data.trainMode:
+            return
         self.data.vectorize()
         self.config=loadConfig()
         self.clusterNum=len(self.data.issuesID)//self.config["cluster_users"]

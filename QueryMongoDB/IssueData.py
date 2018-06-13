@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../')
+
 from QueryMongoDB.ConnectDB import *
 from dateutil import parser
 import datetime,_pickle as pickle,time
@@ -10,8 +13,7 @@ from sklearn.decomposition import TruncatedSVD
 import random,json
 
 def IDF(n_features):
-    vectorizer = TfidfVectorizer(max_df=0.5, max_features=n_features,
-                                 min_df=2, stop_words='english',
+    vectorizer = TfidfVectorizer(max_features=n_features,
                                  use_idf=True)
     return vectorizer
 
@@ -29,6 +31,9 @@ class LSAFlow:
 
     def train_doctopics(self,docs):
         t0 = time.time()
+        #print("test")
+        #print(docs)
+        #print("\n")
 
         self.idfmodel=IDF(self.n_features).fit(docs)
         X = self.idfmodel.transform(docs)
@@ -68,7 +73,7 @@ class LSAFlow:
 class IssueData:
 
     def initTrainData(self):
-        projectID=self.projectID
+        projectID=int(self.projectID)
         issuedata = self.db["issue"].find({"project_id": projectID})
         project = self.db["project"].find({"pid": projectID})
 
@@ -80,14 +85,15 @@ class IssueData:
 
         with open("../data/UserIndex/" + str(projectID) + ".pkl", "wb") as f:
             pickle.dump(self.userIndex, f, True)
-
+        print("checking issues items,projectID=",projectID," size=",issuedata.count())
         for issue in issuedata:
             if len(issue["assignees"])<1:
+#                print("lack of assignees",len(issu["assignees"]))
                 continue
 
             self.issuesID.append(issue["issue_id"])
             beginT = issue["created_at"]
-            endT = issue["closed_at"]
+            endT = issue["updated_at"]
             # beginT=beginT[:beginT.find("T")]
             # endT=endT[:endT.find("T")]
             # print("begin:"+beginT,"end:"+endT)
@@ -109,12 +115,18 @@ class IssueData:
             upvotes = issue["upvotes"]
             notes_count = issue["notes_count"]
 
-            doc = title + "," + description + "," + labels
+            doc = title + "," + labels
             # print(beginT,'\n',duration,'\n',labels,'\n',downvotes,'\n',upvotes,'\n',notes_count,'\n')
             self.assignees.append(issue["assignees"])
 
             self.docs.append(doc)
-            self.issues.append([beginT, duration, downvotes, upvotes, notes_count])
+            
+            numx=np.array([beginT, duration, downvotes, upvotes, notes_count])
+            for z in range(len(numx)):
+                if numx[z] in (np.NAN,np.NaN,np.inf,-np.inf):
+                    numx[z]=0
+            self.issues.append(numx)
+
             # self.assignees.append()
             # break
 
@@ -136,7 +148,7 @@ class IssueData:
         #print("issues count before",len(issues))
         for issue in issues:
             beginT = issue["created_at"]
-            endT = issue["closed_at"]
+            endT = issue["updated_at"]
             beginT = parser.parse(beginT)
             if endT == "":
                 duration = (datetime.datetime.now().date() - beginT.date()).days
@@ -154,7 +166,7 @@ class IssueData:
             upvotes = issue["upvotes"]
             notes_count = issue["notes_count"]
 
-            doc = title + "," + description + "," + labels
+            doc = title + ","  + labels
 
             self.docs.append(doc)
             self.issues.append([beginT, duration, downvotes, upvotes, notes_count])
@@ -194,11 +206,14 @@ class IssueData:
 
         return docX
     def vectorize(self):
+        if len(self.issues)<30 and self.trainMode:
+            return
         #lsa.n_features=100
         self.docX=self.getDocX()
 
         #print(self.docX.shape,len(self.issues))
         self.Xdata=np.concatenate((self.docX,self.issues),axis=1)
+        #self.Xdata=np.array(self.issues)
 
         if self.trainMode==False:
             return
@@ -214,8 +229,24 @@ class IssueData:
                     index=random.randint(0,len(self.userIndex)-1)
                     print("member outliers exist in issues ID",self.issuesID[i])
                 self.Ydata[i]=index
+        
+        labels=np.unique(self.Ydata)
+        alllabels=set(np.arange(len(self.userIndex)))
+        misslabels=alllabels.difference(labels)
+        xlen=len(self.Xdata[0])
+        extraX=[]
+        extraY=[]
+        for l in misslabels:
+            extraX.append(np.zeros(shape=xlen))
+            extraY.append(l)
 
-        print("docL,issueL,featureL",len(self.docX[0]),len(self.issues[0]),len(self.Xdata[0]))
+        if len(misslabels)>0:
+            extraX=np.array(extraX)
+            extraY=np.array(extraY,dtype=np.int)
+            self.Xdata=np.concatenate((self.Xdata,extraX),axis=0)
+            self.Ydata=np.concatenate((self.Ydata,extraY),axis=0)
+
+        #print("docL,issueL,featureL",len(self.docX[0]),len(self.issues[0]),len(self.Xdata[0]))
         print("==============================================================================\n")
 
 if __name__ == '__main__':

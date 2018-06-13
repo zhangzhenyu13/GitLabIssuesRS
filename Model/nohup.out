@@ -1,0 +1,150 @@
+10.4.77.85 - - [29/May/2018 13:44:17] "POST / HTTP/1.1" 200 -
+----------------------------------------
+Exception happened during processing of request from ('10.4.77.85', 56839)
+Traceback (most recent call last):
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 317, in _handle_request_noblock
+    self.process_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 348, in process_request
+    self.finish_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 361, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 696, in __init__
+    self.handle()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 418, in handle
+    self.handle_one_request()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 406, in handle_one_request
+    method()
+  File "RunningModel.py", line 165, in do_POST
+    self.do_OPTIONS()
+  File "RunningModel.py", line 178, in do_OPTIONS
+    recommender.loadModel(projectname)
+  File "RunningModel.py", line 20, in loadModel
+    self.predictor.loadModel()
+  File "../Model/CBC.py", line 126, in loadModel
+    with open("../data/saved_ML_models/predictorModels/"+self.name+"extrees.pkl","rb") as f:
+FileNotFoundError: [Errno 2] No such file or directory: '../data/saved_ML_models/predictorModels/115extrees.pkl'
+----------------------------------------
+10.4.77.85 - - [29/May/2018 13:44:57] "POST / HTTP/1.1" 200 -
+----------------------------------------
+Exception happened during processing of request from ('10.4.77.85', 56916)
+Traceback (most recent call last):
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 317, in _handle_request_noblock
+    self.process_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 348, in process_request
+    self.finish_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 361, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 696, in __init__
+    self.handle()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 418, in handle
+    self.handle_one_request()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 406, in handle_one_request
+    method()
+  File "RunningModel.py", line 165, in do_POST
+    self.do_OPTIONS()
+  File "RunningModel.py", line 178, in do_OPTIONS
+    recommender.loadModel(projectname)
+  File "RunningModel.py", line 20, in loadModel
+    self.predictor.loadModel()
+  File "../Model/CBC.py", line 126, in loadModel
+    with open("../data/saved_ML_models/predictorModels/"+self.name+"extrees.pkl","rb") as f:
+FileNotFoundError: [Errno 2] No such file or directory: '../data/saved_ML_models/predictorModels/115extrees.pkl'
+----------------------------------------
+10.4.77.85 - - [29/May/2018 13:57:24] "POST / HTTP/1.1" 200 -
+----------------------------------------
+Exception happened during processing of request from ('10.4.77.85', 58294)
+Traceback (most recent call last):
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 317, in _handle_request_noblock
+    self.process_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 348, in process_request
+    self.finish_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 361, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 696, in __init__
+    self.handle()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 418, in handle
+    self.handle_one_request()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 406, in handle_one_request
+    method()
+  File "RunningModel.py", line 165, in do_POST
+    self.do_OPTIONS()
+  File "RunningModel.py", line 178, in do_OPTIONS
+    recommender.loadModel(projectname)
+  File "RunningModel.py", line 17, in loadModel
+    projectID=projects[0]["pid"]
+  File "/root/anaconda3/lib/python3.6/site-packages/pymongo/cursor.py", line 570, in __getitem__
+    raise IndexError("no such item for Cursor instance")
+IndexError: no such item for Cursor instance
+----------------------------------------
+10.4.77.85 - - [29/May/2018 14:00:32] "POST / HTTP/1.1" 200 -
+----------------------------------------
+Exception happened during processing of request from ('10.4.77.85', 58631)
+Traceback (most recent call last):
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 317, in _handle_request_noblock
+    self.process_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 348, in process_request
+    self.finish_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 361, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 696, in __init__
+    self.handle()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 418, in handle
+    self.handle_one_request()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 406, in handle_one_request
+    method()
+  File "RunningModel.py", line 165, in do_POST
+    self.do_OPTIONS()
+  File "RunningModel.py", line 178, in do_OPTIONS
+    recommender.loadModel(projectname)
+  File "RunningModel.py", line 17, in loadModel
+    projectID=projects[0]["pid"]
+  File "/root/anaconda3/lib/python3.6/site-packages/pymongo/cursor.py", line 570, in __getitem__
+    raise IndexError("no such item for Cursor instance")
+IndexError: no such item for Cursor instance
+----------------------------------------
+10.4.77.85 - - [29/May/2018 14:11:48] "POST / HTTP/1.1" 200 -
+----------------------------------------
+Exception happened during processing of request from ('10.4.77.85', 59770)
+Traceback (most recent call last):
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 317, in _handle_request_noblock
+    self.process_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 348, in process_request
+    self.finish_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 361, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 696, in __init__
+    self.handle()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 418, in handle
+    self.handle_one_request()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 406, in handle_one_request
+    method()
+  File "RunningModel.py", line 165, in do_POST
+    self.do_OPTIONS()
+  File "RunningModel.py", line 178, in do_OPTIONS
+    recommender.loadModel(projectname)
+  File "RunningModel.py", line 17, in loadModel
+    projectID=projects[0]["pid"]
+  File "/root/anaconda3/lib/python3.6/site-packages/pymongo/cursor.py", line 570, in __getitem__
+    raise IndexError("no such item for Cursor instance")
+IndexError: no such item for Cursor instance
+----------------------------------------
+10.4.77.85 - - [29/May/2018 14:14:16] "POST / HTTP/1.1" 200 -
+----------------------------------------
+Exception happened during processing of request from ('10.4.77.85', 60048)
+Traceback (most recent call last):
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 317, in _handle_request_noblock
+    self.process_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 348, in process_request
+    self.finish_request(request, client_address)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 361, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/root/anaconda3/lib/python3.6/socketserver.py", line 696, in __init__
+    self.handle()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 418, in handle
+    self.handle_one_request()
+  File "/root/anaconda3/lib/python3.6/http/server.py", line 406, in handle_one_request
+    method()
+  File "RunningModel.py", line 165, in do_POST
+    self.do_OPTIONS()
+  File "RunningModel.py", line 178, in do_OPTIONS
+    recommender.loadModel(projectname)

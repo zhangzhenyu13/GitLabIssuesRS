@@ -103,19 +103,21 @@ class EnsembleClassifier:
         self.model=ensemble.ExtraTreesClassifier(**self.params)
 
     def trainModel(self,dataSet):
+        print("labels\n",np.unique(dataSet.trainY))
         print("training")
         t0=time.time()
 
-        self.searchParameters(dataSet)
+       # self.searchParameters(dataSet)
+        self.model=ensemble.ExtraTreesClassifier(**self.params)
 
         self.model.fit(dataSet.trainX,dataSet.trainY)
 
         t1=time.time()
 
         #measure training result
-        vpredict=self.model.predict(dataSet.validateX)
+        vpredict=self.model.predict(dataSet.trainX)
         #print(vpredict)
-        score=metrics.accuracy_score(dataSet.validateY,vpredict)
+        score=metrics.accuracy_score(dataSet.trainY,vpredict)
         print("model",self.name,"trainning finished in %ds"%(t1-t0),"validate score=%f"%score)
     def saveModel(self):
         with open("../data/saved_ML_models/predictorModels/"+self.name+"extrees.pkl","wb") as f:
@@ -130,10 +132,23 @@ def runBuldAll():
     projects = db["project"].find()
     for project in projects:
         projectID = project["pid"]
+        print("building model for project ID=",projectID)
+        #data = DataModel(projectID)
+       # try:
         data = DataModel(projectID)
+       # except Exception as e:
+            
+       #     print("data inner error",e.args)
+       #     continue
+
         if len(data.data.userIndex) < 2:
             print("need not train model")
             continue
+
+        if len(data.data.issuesID)<30:
+            print("lack data to train model")
+            continue
+
         model = EnsembleClassifier()
         model.name = str(projectID)
         model.trainModel(data)
@@ -160,10 +175,23 @@ if __name__ == '__main__':
     projects = db["project"].find({"name":args.projectName})
 
     projectID = int(projects[0]["pid"])
+    print("building model for project ID=",projectID)
+   # try:
+    data = DataModel(projectID)
+   # except:
+   #         print("data inner error")
+   #         exit(1)
 
-    data=DataModel(projectID)
-    if len(data.data.userIndex)<2:
-        print("need not train model")
+    if len(data.data.userIndex) < 2:
+            print("need not train model")
+            exit(2)
+
+    if len(data.data.issuesID)<30:
+            print("lack data to train model")
+            exit(3)
+#    data=DataModel(projectID)
+#    if len(data.data.userIndex)<2:
+#        print("need not train model")
 
     model=EnsembleClassifier()
 
