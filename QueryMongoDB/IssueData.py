@@ -27,7 +27,7 @@ class IDFChinese:
         # print("transfering docs to LSA factors")
         corporus=[]
         for doc in docs:
-            words=jieba.cut(doc)
+            words=jieba.analyse.tfidf(doc)
             words=self.keywords.intersection(words)
             corporus.append(" ".join(words))
 
@@ -45,7 +45,7 @@ class IDFChinese:
         self.corporus=[]
 
         for doc in docs:
-            words = jieba.cut(doc)
+            words = jieba.analyse.tfidf(doc)
             words=self.keywords.intersection(words)
             self.corporus.append(" ".join(words))
 
