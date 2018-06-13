@@ -42,8 +42,8 @@ def testTcpService():
         }
 
         request = {
-            "mode": "issue",
-            "data": data
+            "mode": "issue",#"issue", "ID" or "title"
+            "data": data# issuecontent, issueid, issuetitle
         }
 
         request = json.dumps(request).encode()
@@ -102,12 +102,12 @@ def testHttpService():
             "downvotes": issue["downvotes"],
             "upvotes": issue["upvotes"],
             "notes_count": issue["notes_count"],
-            "name":name
         }
 
         request = {
-            "mode": "issue",
-            "data": data
+            "mode": "issue",  # "issue", "ID" or "title"
+            "data": data,  # issuecontent, issueid, issuetitle
+            "project_name": name
         }
 
         request = json.dumps(request).encode()

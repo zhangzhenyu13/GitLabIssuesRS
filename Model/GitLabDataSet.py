@@ -11,6 +11,7 @@ class DataSet:
         self.Ydata=[]
         self.issueID=[]
         self.clusterID=-1
+
     def genFilters(self,n_label):
         self.filterUsers=[]
         labels=set(self.Ydata)
@@ -43,6 +44,7 @@ class DataSet:
         self.trainID=self.issueID[:train]
         self.validateID=self.issueID[train:train+validate]
         self.testID=self.issueID[train+validate:]
+
 class DataModel:
 
     def predictCluster(self,Xdata):

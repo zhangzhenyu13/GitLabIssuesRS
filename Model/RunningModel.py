@@ -174,8 +174,8 @@ class RunningService:
                 response = BytesIO()
                 #print("===========>body\n",body,"\n")
                 request = json.loads(body.decode())
-                projectname=request["data"]["name"]
-                
+                projectname=request["project_name"]
+                userIDs=[]
                 try:
                     recommender.loadModel(projectname)
                     #print("===========>request data\n",request,"\n")
@@ -194,7 +194,8 @@ class RunningService:
                         "users": usersnames,
                         "userIDs":userIDs
                     }
-                except:
+                except Exception as e:
+                    print(e.args)
                     result = {
                         "status": "Inner Error",
                         "users": ["not available"],

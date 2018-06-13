@@ -25,6 +25,8 @@ def getComments(projectID):
 
 if __name__ == '__main__':
     db=getHanle()
+
+    exit(0)
     projects=db["project"]
     issues=db["issue"]
     commits=db["commit"]

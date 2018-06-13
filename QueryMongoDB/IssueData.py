@@ -1,6 +1,7 @@
 import sys
 sys.path.append('../')
-
+import jieba,jieba.analyse
+from sklearn.feature_extraction.text import CountVectorizer
 from QueryMongoDB.ConnectDB import *
 from dateutil import parser
 import datetime,_pickle as pickle,time
@@ -12,10 +13,76 @@ from sklearn.preprocessing import Normalizer
 from sklearn.decomposition import TruncatedSVD
 import random,json
 
-def IDF(n_features):
+def IDF(n_features,docs):
     vectorizer = TfidfVectorizer(max_features=n_features,
                                  use_idf=True)
-    return vectorizer
+    return vectorizer.fit(docs)
+class IDFChinese:
+    def __init__(self):
+        self.n_features=120
+        self.name = ""
+        self.keywords=set()
+        self.docnum=1
+    def transformVec(self,docs):
+        # print("transfering docs to LSA factors")
+        corporus=[]
+        for doc in docs:
+            words=jieba.cut(doc)
+            words=self.keywords.intersection(words)
+            corporus.append(" ".join(words))
+
+        X = self.tfidf.transform(corporus)
+        X = self.lsa.transform(X)
+
+        return X
+
+
+
+    def train_doctopics(self,docs):
+        t0=time.time()
+        self.docnum=len(docs)
+        self.keywords=set(jieba.analyse.textrank(". ".join(docs),topK=self.n_features))
+        self.corporus=[]
+
+        for doc in docs:
+            words = jieba.cut(doc)
+            words=self.keywords.intersection(words)
+            self.corporus.append(" ".join(words))
+
+        self.tfidf=TfidfTransformer().fit(self.corporus)
+        X=self.tfidf.transform(self.keywords)
+        self.n_features = min(int(0.8 * len(X[0])), self.n_features)
+        print("Performing  Chinese LSA(%d features) from doc shape(%d,%d)" % (self.n_features, len(X), len(X[0])))
+        # Vectorizer results are normalized, which makes KMeans behave as
+        # spherical k-means for better results. Since LSA/SVD results are
+        # not normalized, we have to redo the normalization.
+        svd = TruncatedSVD(self.n_features)
+        normalizer = Normalizer(copy=False)
+        self.lsa = make_pipeline(svd, normalizer)
+        self.lsa = self.lsa.fit(X)
+        explained_variance = svd.explained_variance_ratio_.sum()
+        print("Explained variance of the SVD step: {}%".format(int(explained_variance * 100)))
+
+        print("LSA for Chinese built in %fs" % (time.time() - t0))
+        with open("../data/saved_ML_models/docModels/" + self.name + "-lsamodel-ch.pkl", "wb") as f:
+            model = {}
+            model["n_features"] = self.n_features
+            model["keywords"]=self.keywords
+            model["lsa"] = self.lsa
+            model["tfidf"] = self.tfidf
+            pickle.dump(model, f, True)
+
+    def loadModel(self):
+        # print("loading lsa model")
+        with open("../data/saved_ML_models/docModels/" + self.name + "-lsamodel-ch.pkl", "rb") as f:
+            model = pickle.load(f)
+            self.n_features = model["n_features"]
+            self.keywords=model["keywords"]
+            self.lsa = model["lsa"]
+            self.tfidf = model["tfidf"]
+        # print("loaded %d feature model"%self.n_features)
+        print()
+
 
 class LSAFlow:
 
@@ -35,7 +102,7 @@ class LSAFlow:
         #print(docs)
         #print("\n")
 
-        self.idfmodel=IDF(self.n_features).fit(docs)
+        self.idfmodel=IDF(self.n_features,docs)
         X = self.idfmodel.transform(docs)
 
         X=X.toarray()
@@ -141,9 +208,13 @@ class IssueData:
         if data["mode"]=='ID':
             issueID=int(data["data"])
             issues = self.db["issue"].find({"issue_id": issueID})
-
+        elif data["mode"]=='title':
+            issue_title=str(data["data"])
+            issues=self.db["issue"].find({"title":issue_title})
+        elif data["mode"]=="issue":
+            issues = [data["data"]]
         else:
-            issues=[data["data"]]
+            return
 
         #print("issues count before",len(issues))
         for issue in issues:
