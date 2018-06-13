@@ -17,19 +17,27 @@ def IDF(n_features,docs):
     vectorizer = TfidfVectorizer(max_features=n_features,
                                  use_idf=True)
     return vectorizer.fit(docs)
-class IDFChinese:
+class LSACHFlow:
     def __init__(self):
         self.n_features=120
         self.name = ""
         self.keywords=set()
         self.docnum=1
+
+    def cleanDocs(self,docs):
+        corporus = []
+
+        for doc in docs:
+            words = jieba.analyse.tfidf(doc)
+            words = self.keywords.intersection(words)
+            corporus.append(" ".join(words))
+        print("cleaning from",len(docs),len(docs[0]),"to",len(corporus),len(corporus[0]))
+
+        return corporus
+
     def transformVec(self,docs):
         # print("transfering docs to LSA factors")
-        corporus=[]
-        for doc in docs:
-            words=jieba.analyse.tfidf(doc)
-            words=self.keywords.intersection(words)
-            corporus.append(" ".join(words))
+        corporus=self.cleanDocs(docs)
 
         X = self.tfidf.transform(corporus)
         X = self.lsa.transform(X)
@@ -42,16 +50,11 @@ class IDFChinese:
         t0=time.time()
         self.docnum=len(docs)
         self.keywords=set(jieba.analyse.textrank(". ".join(docs),topK=self.n_features))
-        self.corporus=[]
+        corporus=self.cleanDocs(docs)
 
-        for doc in docs:
-            words = jieba.analyse.tfidf(doc)
-            words=self.keywords.intersection(words)
-            self.corporus.append(" ".join(words))
-
-        self.tfidf=TfidfTransformer().fit(self.corporus)
-        X=self.tfidf.transform(self.keywords)
-        self.n_features = min(int(0.8 * len(X[0])), self.n_features)
+        self.tfidf=TfidfVectorizer(max_features=self.n_features).fit(corporus)
+        X=self.tfidf.transform(corporus).toarray()
+        self.n_features = len(X[0])
         print("Performing  Chinese LSA(%d features) from doc shape(%d,%d)" % (self.n_features, len(X), len(X[0])))
         # Vectorizer results are normalized, which makes KMeans behave as
         # spherical k-means for better results. Since LSA/SVD results are
@@ -260,7 +263,14 @@ class IssueData:
         self.trainMode=trainMode
         self.db=getHanle()
 
-        self.lsa = LSAFlow()
+        config=loadConfig()
+        if config["language"]=="ch":
+            self.lsa=LSACHFlow()
+        elif config["language"]=="en":
+            self.lsa=LSAFlow()
+        else:
+            raise Exception("language not suported")
+
         self.lsa.name=str(self.projectID)
 
         if self.trainMode:
